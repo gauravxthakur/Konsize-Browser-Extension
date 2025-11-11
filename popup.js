@@ -29,7 +29,126 @@ document.getElementById("summarize").addEventListener("click", async () => {
               summaryType,
               result.geminiApiKey
             );
-            resultDiv.innerText = summary;
+
+            // Clear result container and add content wrapper so we can append the export button
+            resultDiv.innerHTML = "";
+            const contentEl = document.createElement("div");
+            contentEl.id = "result-content";
+            contentEl.style.whiteSpace = "pre-wrap";
+            contentEl.style.lineHeight = "1.5";
+            contentEl.innerText = summary;
+            resultDiv.appendChild(contentEl);
+
+            // Remove existing export and narrate buttons if present
+            const existing = document.getElementById("export-docs-btn");
+            if (existing) existing.remove();
+            const existingNarrate = document.getElementById("narrate-btn");
+            if (existingNarrate) existingNarrate.remove();
+
+            // Create Export to Docs button
+            const exportBtn = document.createElement("button");
+            exportBtn.id = "export-docs-btn";
+            exportBtn.innerText = "Export to Docs";
+            exportBtn.title = "Copy summary and open a new Google Docs tab (then paste).";
+
+            exportBtn.addEventListener("click", async () => {
+              const summaryText = contentEl.innerText || "";
+              if (!summaryText || summaryText.trim() === "") return;
+
+              try {
+                // Copy to clipboard (user gesture)
+                await navigator.clipboard.writeText(summaryText);
+
+                // Open a new Google Docs document in a new tab
+                // Using chrome.tabs.create to ensure it opens as a tab from the extension
+                if (chrome && chrome.tabs && chrome.tabs.create) {
+                  chrome.tabs.create({ url: "https://docs.google.com/document/create" });
+                } else {
+                  window.open("https://docs.google.com/document/create", "_blank");
+                }
+
+                const previous = exportBtn.innerText;
+                exportBtn.innerText = "Opened — paste (Ctrl+V)";
+                setTimeout(() => (exportBtn.innerText = previous), 3000);
+              } catch (err) {
+                console.error("Export to Docs failed:", err);
+                exportBtn.innerText = "Failed — try copying manually";
+                setTimeout(() => (exportBtn.innerText = "Export to Docs"), 3000);
+              }
+            });
+
+            resultDiv.appendChild(exportBtn);
+
+            // Create Narrate (text-to-speech) button
+            const narrateBtn = document.createElement("button");
+            narrateBtn.id = "narrate-btn";
+            narrateBtn.innerText = "Narrate";
+            narrateBtn.title = "Read the summary aloud (click to pause/resume).";
+
+            // Keep a reference to the current utterance so we can pause/resume/stop
+            let currentUtterance = null;
+
+            function resetNarrateButton() {
+              narrateBtn.innerText = "Narrate";
+            }
+
+            narrateBtn.addEventListener("click", () => {
+              const text = contentEl.innerText || "";
+              if (!text || text.trim() === "") return;
+
+              // If nothing is speaking, start speaking
+              if (!window.speechSynthesis.speaking && !currentUtterance) {
+                currentUtterance = new SpeechSynthesisUtterance(text);
+                // Optional: set voice/lang/rate/pitch
+                currentUtterance.lang = "en-US";
+                currentUtterance.rate = 1;
+
+                currentUtterance.onend = () => {
+                  currentUtterance = null;
+                  resetNarrateButton();
+                };
+
+                currentUtterance.onerror = () => {
+                  currentUtterance = null;
+                  resetNarrateButton();
+                };
+
+                window.speechSynthesis.speak(currentUtterance);
+                narrateBtn.innerText = "Pause";
+                return;
+              }
+
+              // If speaking and not paused -> pause
+              if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                window.speechSynthesis.pause();
+                narrateBtn.innerText = "Resume";
+                return;
+              }
+
+              // If paused -> resume
+              if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                narrateBtn.innerText = "Pause";
+                return;
+              }
+
+              // Fallback: if something weird, cancel and reset
+              window.speechSynthesis.cancel();
+              currentUtterance = null;
+              resetNarrateButton();
+            });
+
+            // Cancel speech when popup unloads or new summary generated
+            const cleanupNarration = () => {
+              if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
+                window.speechSynthesis.cancel();
+              }
+              currentUtterance = null;
+            };
+
+            window.addEventListener("beforeunload", cleanupNarration);
+
+            resultDiv.appendChild(narrateBtn);
           } catch (error) {
             resultDiv.innerText = `Error: ${
               error.message || "Failed to generate summary."

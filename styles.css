@@ -1,0 +1,157 @@
+/* Shared dark theme for the extension */
+:root {
+  /* Beige theme */
+  --bg: #ffffed; /* beige */
+  --panel: #ffffed; /* light panel */
+  --muted-border: #e0d8c8;
+  --muted: #5a5a5a;
+  --accent: #4285f4;
+  --accent-dark: #3367d6;
+  --success: #34a853;
+  --success-dark: #2e8b57;
+}
+
+html, body {
+  background-color: var(--bg);
+  color: #000000;
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Headings */
+h1, h2 {
+  color: #ffffff;
+}
+
+/* Layout sizing from original styles */
+body {
+  min-width: 500px;
+  min-height: 300px;
+  padding: 15px;
+}
+
+.options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+/* Buttons keep accent colors but remain readable on dark bg */
+button {
+  padding: 8px 15px;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: var(--accent-dark);
+}
+
+#copy-btn {
+  background-color: var(--success);
+}
+
+#copy-btn:hover {
+  background-color: var(--success-dark);
+}
+
+/* Form controls */
+#summary-type,
+input[type="text"] {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--muted-border);
+  background-color: var(--panel);
+  color: #000000;
+}
+
+#result {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid var(--muted-border);
+  border-radius: 4px;
+  min-height: 150px;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  background-color: rgba(0,0,0,0.02);
+  color: #000000;
+}
+
+#result ul {
+  padding-left: 20px;
+}
+
+#result li {
+  margin-bottom: 10px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+}
+
+.loader {
+  border: 4px solid #e0d8c8;
+  border-top: 4px solid var(--accent);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Links and small text */
+a { color: var(--accent); }
+
+.success-message { color: var(--success); }
+
+/* Responsive tweak: allow smaller popups to flow */
+@media (max-width: 520px) {
+  body { min-width: auto; padding: 10px; }
+}
+
+/* Export to Docs button: black background with white text */
+#export-docs-btn {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 12px;
+  margin-right: 16px; /* increased gap to narrate button */
+}
+
+#export-docs-btn:hover {
+  opacity: 0.9;
+}
+
+/* Narrate (text-to-speech) button: lighter shade of red with white text */
+#narrate-btn {
+  background-color: #ff6b6b; /* lighter red */
+  color: #ffffff;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 12px;
+  margin-left: 8px;
+}
+
+#narrate-btn:hover {
+  filter: brightness(0.95);
+}
